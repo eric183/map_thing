@@ -32,6 +32,9 @@ const MapEntry = props => {
         circle.setMap(map)
         // 缩放地图到合适的视野级别
         map.setFitView([ circle ]);
+
+        markersCollider(circle);
+
     }
 
     function drawRect() {
@@ -62,7 +65,17 @@ const MapEntry = props => {
         })
                 
         rectangle.setMap(map);
-   
+        map.setFitView([ rectangle ]);
+
+        markersCollider(rectangle);
+    }
+
+    function markersCollider(gemometry, bool) {
+        let markers = map.getAllOverlays("marker");
+        // debugger;
+        let findMarkers = markers.filter((obj, index) =>  gemometry.contains(obj.getPosition()));
+        // debugger;
+        alert(findMarkers.length);
     }
 
 
@@ -130,10 +143,10 @@ const MapEntry = props => {
         });
 
 
-        // let findMarkers = markers.filter((obj, index) =>  rectangle.contains(obj.getPosition()))
         // console.log(findMarkers.length);
     }
 
+    
     const getItems = count =>
         Array.from({ length: count }, (v, k) => k).map(k => ({
             id: `item-${k}`,
@@ -375,8 +388,8 @@ const MapEntry = props => {
                                     className="geometry-content">
                                     <div 
                                         style={{ 
-                                            width: "50px", 
-                                            height: '50px',
+                                            width: "70px", 
+                                            height: '70px',
                                             background: '#fff',
                                             border: '1px solid #fff',
                                             borderRadius: '50%',
@@ -387,8 +400,8 @@ const MapEntry = props => {
                                     </div>
                                     <div 
                                         style={{ 
-                                            width: "50px", 
-                                            height: '50px',
+                                            width: "70px", 
+                                            height: '70px',
                                             background: '#fff',
                                             border: '1px solid #fff', 
                                         }}
