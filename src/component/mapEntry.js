@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, Fragment } from 'react';
 // import { mm } from '../asset/data/points1.json';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
@@ -12,6 +12,60 @@ const MapEntry = props => {
 
     const [items, setItems] = useState([]);
     
+    function drawCircle() {
+        var circle = new AMap.Circle({
+            center: map.getCenter(),
+            radius: 1000, //半径
+            borderWeight: 3,
+            strokeColor: "#FF33FF", 
+            strokeOpacity: 1,
+            strokeWeight: 6,
+            strokeOpacity: 0.2,
+            fillOpacity: 0.4,
+            strokeStyle: 'dashed',
+            strokeDasharray: [10, 10], 
+            // 线样式还支持 'dashed'
+            fillColor: '#1791fc',
+            zIndex: 50,
+        })
+    
+        circle.setMap(map)
+        // 缩放地图到合适的视野级别
+        map.setFitView([ circle ]);
+    }
+
+    function drawRect() {
+        let center = map.getCenter();
+        let m = center.offset(1500, 1500);
+        // console.log(m);
+
+        // debugger;
+        // console.log();
+        // debugger;
+        // var southWest = new AMap.LngLat(center);
+        // var northEast = new AMap.LngLat(center);
+        // console.log(new AMap.LngLat(center).offset(10, 10));
+        // debugger;
+        var bounds = new AMap.Bounds(center, m);
+        var rectangle = new AMap.Rectangle({
+            bounds: bounds,
+            strokeColor:'red',
+            strokeWeight: 6,
+            strokeOpacity:0.5,
+            strokeDasharray: [30,10],
+            // strokeStyle还支持 solid
+            strokeStyle: 'dashed',
+            fillColor:'blue',
+            fillOpacity:0.5,
+            cursor:'pointer',
+            zIndex:50,
+        })
+                
+        rectangle.setMap(map);
+   
+    }
+
+
     function injectIndexNumber(obj, number) {
 
         obj.visibility = "visible";
@@ -76,29 +130,8 @@ const MapEntry = props => {
         });
 
 
-        var southWest = new AMap.LngLat(114.091536,22.54982)
-        var northEast = new AMap.LngLat(113.941906,22.672885)
-    
-        var bounds = new AMap.Bounds(southWest, northEast)
-    
-        var rectangle = new AMap.Rectangle({
-            bounds: bounds,
-            strokeColor:'red',
-            strokeWeight: 6,
-            strokeOpacity:0.5,
-            strokeDasharray: [30,10],
-            // strokeStyle还支持 solid
-            strokeStyle: 'dashed',
-            fillColor:'blue',
-            fillOpacity:0.5,
-            cursor:'pointer',
-            zIndex:50,
-        })
-                
-        rectangle.setMap(map);
-   
-        let findMarkers = markers.filter((obj, index) =>  rectangle.contains(obj.getPosition()))
-        console.log(findMarkers.length);
+        // let findMarkers = markers.filter((obj, index) =>  rectangle.contains(obj.getPosition()))
+        // console.log(findMarkers.length);
     }
 
     const getItems = count =>
@@ -190,6 +223,7 @@ const MapEntry = props => {
         setItems(_items);
     }
    
+
     useEffect(() => {
         resortMarkerLayer(items);
 
@@ -252,72 +286,118 @@ const MapEntry = props => {
                     <Droppable droppableId="droppable">
                         
                         {(provided, snapshot) => (
-                            <div
-                                {...provided.droppableProps}
-                                ref={provided.innerRef}
-                                style={getListStyle(snapshot.isDraggingOver)}
-                            >
-                                <p style={{ textAlign: 'center' }}>图层管理</p>
-                                {items.map((item, index) => (
-                                    <Draggable 
-                                        key={item.id} 
-                                        index={index}
-                                        draggableId={item.id} 
-                                        onClick={hideAndShow}
-                                        >
-                                        {(provided, snapshot) => (
-                                            <div
-                                                ref={provided.innerRef}
-                                                {...provided.draggableProps}
-                                                {...provided.dragHandleProps}
-                                                style={getItemStyle(
-                                                    snapshot.isDragging,
-                                                    provided.draggableProps.style
-                                                )}
+                            <Fragment>
+                                <div
+                                    {...provided.droppableProps}
+                                    ref={provided.innerRef}
+                                    style={getListStyle(snapshot.isDraggingOver)}
+                                >
+                                    <p style={{ textAlign: 'center' }}>图层管理</p>
+                                    {items.map((item, index) => (
+                                        <Draggable 
+                                            key={item.id} 
+                                            index={index}
+                                            draggableId={item.id} 
+                                            onClick={hideAndShow}
                                             >
-                                                图层{item.id}
-                                                
-                                                <button 
-                                                    onClick={ ()=> hideAndShow(item, index) }
-                                                    style={{
-                                                        position: "absolute", 
-                                                        right: 3,
-                                                        position: 'absolute',
-                                                        right: '3px',
-                                                        height: '100%',
-                                                        top: 0,
-                                                        width: '50px',
-                                                        background: 'transparent',
-                                                        color: '#fff',
-                                                        border: "none", 
-                                                    }}
+                                            {(provided, snapshot) => (
+                                                <div
+                                                    ref={provided.innerRef}
+                                                    {...provided.draggableProps}
+                                                    {...provided.dragHandleProps}
+                                                    style={getItemStyle(
+                                                        snapshot.isDragging,
+                                                        provided.draggableProps.style
+                                                    )}
                                                 >
-                                                    {item['visibility'] != 'hidden' ? "隐藏" : "显示"}
-                                                </button>
-                                            </div>
-                                        )}
-                                    </Draggable>
-                                ))}
-                                {provided.placeholder}
+                                                    图层{item.id}
+                                                    
+                                                    <button 
+                                                        onClick={ ()=> hideAndShow(item, index) }
+                                                        style={{
+                                                            position: "absolute", 
+                                                            right: 3,
+                                                            position: 'absolute',
+                                                            right: '3px',
+                                                            height: '100%',
+                                                            top: 0,
+                                                            width: '50px',
+                                                            background: 'transparent',
+                                                            color: '#fff',
+                                                            border: "none", 
+                                                        }}
+                                                    >
+                                                        {item['visibility'] != 'hidden' ? "隐藏" : "显示"}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </Draggable>
+                                    ))}
+                                    {provided.placeholder}
 
-                                <button style={{ position: 'relative', width: '100%', height: '50px' }}>
-                                    <input 
-                                        onChange={uploader}
-                                        type="file" 
-                                        style={{
-                                            position: "absolute",
-                                            opacity: 0,
-                                            // visibility: 'hidden', 
-                                            width: '100%',
-                                            height: '100%',
-                                            left: 0,
-                                            top: 0,
-                                            zIndex: 5
+                                    <button style={{ position: 'relative', width: '100%', height: '50px' }}>
+                                        <input 
+                                            onChange={uploader}
+                                            type="file" 
+                                            style={{
+                                                position: "absolute",
+                                                opacity: 0,
+                                                // visibility: 'hidden', 
+                                                width: '100%',
+                                                height: '100%',
+                                                left: 0,
+                                                top: 0,
+                                                zIndex: 5
+                                            }}
+                                        />
+                                        添加图层
+                                    </button>
+
+                                </div>
+
+                                <div 
+                                    style={{
+                                        position: "fixed",
+                                        display: 'flex',
+                                        flexFlow: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-around',
+                                        right: "50px",
+                                        top: "30%",
+                                        padding: '8px',
+                                        width: '150px',
+                                        height: '350px',
+                                        overflow: 'auto',
+                                        background: 'lightgrey',
+                                        zIndex: 1,
+                                        cursor: 'auto',
+                                    }}
+                                    className="geometry-content">
+                                    <div 
+                                        style={{ 
+                                            width: "50px", 
+                                            height: '50px',
+                                            background: '#fff',
+                                            border: '1px solid #fff',
+                                            borderRadius: '50%',
                                         }}
-                                    />
-                                    添加图层
-                                </button>
-                            </div>
+                                        className="geomery circle"
+                                        onClick={drawCircle}>
+
+                                    </div>
+                                    <div 
+                                        style={{ 
+                                            width: "50px", 
+                                            height: '50px',
+                                            background: '#fff',
+                                            border: '1px solid #fff', 
+                                        }}
+                                        className="geomery rect"
+                                        onClick={drawRect}>
+                                        
+                                    </div>
+                                </div>
+                            </Fragment>
                         )}
                     </Droppable>
                 </DragDropContext>
