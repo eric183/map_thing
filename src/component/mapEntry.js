@@ -2,42 +2,57 @@ import React, { useRef, useEffect, useState } from 'react';
 // import { mm } from '../asset/data/points1.json';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
+
+let map;
 const MapEntry = props => {
     
-    // var map = new AMap.Map('container', {
-    //     center: [107.943579, 30.131735],
-    //     zoom: 7
-    // }); 
-    let map, grid = 8, myRef = useRef(null);
+   
+    let grid = 8, myRef = useRef(null);
+  
 
-    var tap1 = require('../asset/data/points1.json');
-    // let tap2 = require('../asset/data/points2.json');
-    let tap3 = require('../asset/data/points3.json');
-
-    var [items, setItems] = useState([injectIndexNumber(tap1, 1), injectIndexNumber(tap3, 2)]);
+    const [items, setItems] = useState([]);
     
     function injectIndexNumber(obj, number) {
+
+        obj.visibility = "visible";
         obj.id = (number || items.length).toString();
         return obj;
     }
 
     function resortMarkerLayer(_items) {
 
-        let myItems = _items.map((tap, index) => {
-            return new AMap.GeoJSON({
-                geoJSON: tap,
+        var markers = [];
+
     
-                // 还可以自定义getMarker和getPolyline
+        map && map.clearMap && map.clearMap();  
+
+        
+        let myItems = _items.map((tap, index) => {
+
+            let geoFiles = new AMap.GeoJSON({
+                geoJSON: tap,
+                // map: map,
     
                 // getPolyline: () => {
                 //     console.log('as');
                 // },
                 getMarker: (geojson, lnglats) => {
-                    var area = AMap.GeometryUtil.ringArea(lnglats[0])
+                    
+                    // var area = AMap.GeometryUtil.ringArea(lnglats[0]);
+
+                    // let visibleValue = true;
                     // console.log(geojson);
-                    return new AMap.Marker({
+                    let marker = new AMap.Marker({
+                        // position: lnglats,
+                        // content: '<div style="background-color: hsla(180, 100%, 50%, 0.7); height: 24px; width: 24px; border: 1px solid hsl(180, 100%, 40%); border-radius: 12px; box-shadow: hsl(180, 100%, 50%) 0px 0px 1px;"></div>',
+                        // offset: new AMap.Pixel(-15, -15)
+                        
+                        // map: map,
                         position: lnglats,
-                        title: "你好",
+                        visible: tap.visibility == 'visible' ? true : false,
+                        // title: "你好",
+                        // label: "南方",
+                        // content: "你好",
                         animation: "AMAP_ANIMATION_DROP",
                         clickable: true,
                         // fillOpacity: 1 - Math.sqrt(area / 8000000000),// 面积越大透明度越高
@@ -46,51 +61,68 @@ const MapEntry = props => {
                         // zIndex: tap3.features.indexOf(geojson),
                         zIndex: index,
                     });
+                    
+                    marker.setMap(map);
+                    markers.push(marker);
+                   
+                    
+
+                    return markers;
                 },
             });
-    
-        })        
-        myItems.forEach((item) => { item.setMap(map) });
+         
+           
+            return geoFiles;
+        });
 
+
+        var southWest = new AMap.LngLat(114.091536,22.54982)
+        var northEast = new AMap.LngLat(113.941906,22.672885)
+    
+        var bounds = new AMap.Bounds(southWest, northEast)
+    
+        var rectangle = new AMap.Rectangle({
+            bounds: bounds,
+            strokeColor:'red',
+            strokeWeight: 6,
+            strokeOpacity:0.5,
+            strokeDasharray: [30,10],
+            // strokeStyle还支持 solid
+            strokeStyle: 'dashed',
+            fillColor:'blue',
+            fillOpacity:0.5,
+            cursor:'pointer',
+            zIndex:50,
+        })
+                
+        rectangle.setMap(map);
+   
+        let findMarkers = markers.filter((obj, index) =>  rectangle.contains(obj.getPosition()))
+        console.log(findMarkers.length);
     }
 
-    useEffect(() => {
-        map = new AMap.Map(myRef.current, {
-            center: [113.934298, 22.506958],
-            zoom: 15
-        });
-        // debugger;
-        map.plugin(["AMap.ToolBar"], function () {
-            map.addControl(new AMap.ToolBar());
-        });
-
-        // console.log(require('../asset/data/points1.json'));
-
-        resortMarkerLayer(items);
-    }, [])
-
-    // fake data generator
     const getItems = count =>
         Array.from({ length: count }, (v, k) => k).map(k => ({
             id: `item-${k}`,
             content: `item ${k}`
-        }));
+        }
+    ));
 
     // a little function to help us with reordering the result
     const reorder = (list, startIndex, endIndex) => {
+        // console.log(list, startIndex, endIndex);
         // console.log(list);
-        const result = Array.from(list);
+        let _list = [...list];
+        const result = Array.from(_list);
         const [removed] = result.splice(startIndex, 1);
         result.splice(endIndex, 0, removed);
         // console.log('resort', result);
         return result;
     };
 
-    
-
     const getItemStyle = (isDragging, draggableStyle) => ({
         // some basic styles to make the items look a bit nicer
-
+        position: 'relative',
         userSelect: "none",
         padding: grid * 2,
         margin: `0 0 ${grid}px 0`,
@@ -110,30 +142,107 @@ const MapEntry = props => {
         overflow: 'auto'
     });
 
-    const onDragEnd = (result) => {
+    const onDragEnd = (result,v,j) => {
         // dropped outside the list
+        // console.log(map);
         if (!result.destination) {
-          return;
+            return;
+        } else if(result.source.index === result.destination.index) {
+            return;
         }
-        items = reorder(
+        // debugger;
+        
+        let myitems = reorder(
             items,
             result.source.index,
             result.destination.index
         )
-        
-        setItems(items);
-
-        resortMarkerLayer(items);
+        setItems(myitems);
         // console.log(items);
-        // this.setState({
-        //   items
-        // });
+        // resortMarkerLayer(myitems);
+       
     }
-    
-    // var items = getItems(10);
-    // var items = [tap1, tap3];
 
-    //   console.log(tap1);
+    const uploader = (event) => {
+        // debugger;
+
+        let reader = new FileReader();
+        reader.readAsText(event.target.files[0]);
+        reader.onload = (event) => {
+            // debugger;
+            setItems([...items, injectIndexNumber(JSON.parse(event.target.result), items.length + 1)]);
+
+
+        }
+
+    } 
+
+    const hideAndShow = (item, index) => {
+        // debugger    
+        // item.visibility = item.visibility == "hidden" ? "visible" : "hidden";
+        
+        let _items = [...items];
+
+        _items[index].visibility = item.visibility == "hidden" ? "visible" : "hidden";
+        // _items[index].visibility = "none"
+        // debugger
+        // _items[0].visibility = "none";
+        setItems(_items);
+    }
+   
+    useEffect(() => {
+        resortMarkerLayer(items);
+
+        // var southWest = new AMap.LngLat(113.934298, 22.506958)
+        // var northEast = new AMap.LngLat(114.016801, 22.740162)
+    
+        // var bounds = new AMap.Bounds(southWest, northEast)
+    
+        // var rectangle = new AMap.Rectangle({
+        //     bounds: bounds,
+        //     strokeColor:'red',
+        //     strokeWeight: 6,
+        //     strokeOpacity:0.5,
+        //     strokeDasharray: [30,10],
+        //     // strokeStyle还支持 solid
+        //     strokeStyle: 'dashed',
+        //     fillColor:'blue',
+        //     fillOpacity:0.5,
+        //     cursor:'pointer',
+        //     zIndex: 50,
+        // })
+    
+        // rectangle.setMap(map)
+        // let overLayGroup = new AMap.OverlayGroup([rectangle])
+        // map.add(overLayGroup);
+
+        // let number = overLayGroup.getOverlays();
+        // debugger;
+        
+        
+        // var circle = new AMap.Circle({
+        //     center: new AMap.LngLat(114.039756, 22.521769),  // 圆心位置
+        //     radius: 1000, // 圆半径
+        //     fillColor: 'red',   // 圆形填充颜色
+        //     strokeColor: '#fff', // 描边颜色
+        //     strokeWeight: 2, // 描边宽度
+        // });
+        
+        // map.add(circle);
+    }, [items])
+
+    useEffect(() => {
+        map = new AMap.Map(myRef.current, {
+            center: [113.934298, 22.506958],
+            zoom: 15
+        });
+        // debugger;
+        map.plugin(["AMap.ToolBar"], function () {
+            map.addControl(new AMap.ToolBar());
+        });
+    }, [])
+
+
     return (
         <div className="map-entry" ref={myRef} style={{ width: '100%', height: '100%' }}>
             <div className="mapToggle" style={{ position: "fixed", left: '50px', top: '30%', zIndex: 1 }}>
@@ -148,9 +257,14 @@ const MapEntry = props => {
                                 ref={provided.innerRef}
                                 style={getListStyle(snapshot.isDraggingOver)}
                             >
-                                <p>图层管理</p>
+                                <p style={{ textAlign: 'center' }}>图层管理</p>
                                 {items.map((item, index) => (
-                                    <Draggable key={item.id} draggableId={item.id} index={index}>
+                                    <Draggable 
+                                        key={item.id} 
+                                        index={index}
+                                        draggableId={item.id} 
+                                        onClick={hideAndShow}
+                                        >
                                         {(provided, snapshot) => (
                                             <div
                                                 ref={provided.innerRef}
@@ -162,11 +276,47 @@ const MapEntry = props => {
                                                 )}
                                             >
                                                 图层{item.id}
+                                                
+                                                <button 
+                                                    onClick={ ()=> hideAndShow(item, index) }
+                                                    style={{
+                                                        position: "absolute", 
+                                                        right: 3,
+                                                        position: 'absolute',
+                                                        right: '3px',
+                                                        height: '100%',
+                                                        top: 0,
+                                                        width: '50px',
+                                                        background: 'transparent',
+                                                        color: '#fff',
+                                                        border: "none", 
+                                                    }}
+                                                >
+                                                    {item['visibility'] != 'hidden' ? "隐藏" : "显示"}
+                                                </button>
                                             </div>
                                         )}
                                     </Draggable>
                                 ))}
                                 {provided.placeholder}
+
+                                <button style={{ position: 'relative', width: '100%', height: '50px' }}>
+                                    <input 
+                                        onChange={uploader}
+                                        type="file" 
+                                        style={{
+                                            position: "absolute",
+                                            opacity: 0,
+                                            // visibility: 'hidden', 
+                                            width: '100%',
+                                            height: '100%',
+                                            left: 0,
+                                            top: 0,
+                                            zIndex: 5
+                                        }}
+                                    />
+                                    添加图层
+                                </button>
                             </div>
                         )}
                     </Droppable>
