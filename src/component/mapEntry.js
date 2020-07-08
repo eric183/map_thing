@@ -70,11 +70,27 @@ const MapEntry = props => {
         markersCollider(rectangle);
     }
 
-    function markersCollider(gemometry, bool) {
+    function markersCollider(geometry, bool) {
         let markers = map.getAllOverlays("marker");
         // debugger;
-        let findMarkers = markers.filter((obj, index) =>  gemometry.contains(obj.getPosition()));
+        let findMarkers = markers.filter((obj, index) =>  geometry.contains(obj.getPosition()));
         // debugger;
+        // markers
+        debugger;
+        geometry.on('click', (evt)=> {
+            var person = prompt("请输入导出文件名", "export");
+            // debugger;
+            if (person != null) {
+                // document.getElementById("demo").innerHTML =
+                // "Hello " + person + "! How are you today?";
+                // AMap.GeoJSON()
+                let z = markers.toGeoJSON()
+                debugger;
+
+            } else {
+                return;
+            }
+        })
         alert(findMarkers.length);
     }
 
@@ -138,7 +154,8 @@ const MapEntry = props => {
                 },
             });
          
-           
+            // let m = geoFiles.toGeoJSON();
+            // debugger;
             return geoFiles;
         });
 
