@@ -5,7 +5,7 @@ import { saveAs } from 'file-saver';
 import './ani.css';
 
 import Logo from "../asset/images/logo.png";
-let map;
+let map, mouseTool;
 
 let markerHandler = {};
 
@@ -26,69 +26,151 @@ const MapEntry = props => {
     }
 
     function drawCircle() {
-        if(markerHandler.circle) {
-            
-            markerHandler.circle.type.setMap();
+        for(let i in markerHandler) {
+            if(!!markerHandler[i]) {
+                markerHandler[i].setMap();
+            }
         }
 
-        var circle = new AMap.Circle({
-            center: map.getCenter(),
-            radius: 1000, //半径
-            borderWeight: 3,
-            strokeColor: "#FF33FF", 
+
+        mouseTool.circle({
+            strokeColor: "#FF33FF",
             strokeOpacity: 1,
             strokeWeight: 6,
             strokeOpacity: 0.2,
-            fillOpacity: 0.4,
-            strokeStyle: 'dashed',
-            strokeDasharray: [10, 10], 
-            // 线样式还支持 'dashed'
             fillColor: '#1791fc',
-            zIndex: 50,
-        })
-    
-        circle.setMap(map)
-        // 缩放地图到合适的视野级别
-        map.setFitView([ circle ]);
+            fillOpacity: 0.4,
+            strokeStyle: 'solid',
+            // 线样式还支持 'dashed'
+            // strokeDasharray: [30,10],
+        });
 
-        markersCollider(circle);
-        markerHandler.circle = {
-            type: circle,
-            editor: new AMap.CircleEditor(map, circle)
+
+
+        mouseTool.on('draw', drawer);
+
+        function drawer(event) {
+            // event.obj 为绘制出来的覆盖物对象
+            // log.info('覆盖物对象绘制完成')
+
+            // debugger;
+
+            // console.log(event.obj);
+            mouseTool.close();
+            
+            markerHandler.circle = event.obj;
+
+            markersCollider(event.obj);
+            
+
+            mouseTool.off('draw', drawer);
         }
+        
+        // markersCollider(circle);
+
+        // if(markerHandler.circle) {
+            
+        //     markerHandler.circle.type.setMap();
+        // }
+
+        // var circle = new AMap.Circle({
+        //     center: map.getCenter(),
+        //     radius: 1000, //半径
+        //     borderWeight: 3,
+        //     strokeColor: "#FF33FF", 
+        //     strokeOpacity: 1,
+        //     strokeWeight: 6,
+        //     strokeOpacity: 0.2,
+        //     fillOpacity: 0.4,
+        //     strokeStyle: 'dashed',
+        //     strokeDasharray: [10, 10], 
+        //     // 线样式还支持 'dashed'
+        //     fillColor: '#1791fc',
+        //     zIndex: 50,
+        // })
+    
+        // circle.setMap(map)
+        // 缩放地图到合适的视野级别
+        // map.setFitView([ circle ]);
+
+        // markersCollider(circle);
+        // markerHandler.circle = {
+        //     type: circle,
+        //     editor: new AMap.CircleEditor(map, circle)
+        // }
     }
 
     function drawRect() {
 
-        if(markerHandler.circle) markerHandler.circle.type.setMap();
-        let center = map.getCenter();
-        let m = center.offset(1000, 1000);
-       
-        var bounds = new AMap.Bounds(center, m);
-        var rectangle = new AMap.Rectangle({
-            bounds: bounds,
+
+        for(let i in markerHandler) {
+            if(!!markerHandler[i]) {
+                markerHandler[i].setMap();
+            }
+        }
+
+        mouseTool.rectangle({
             strokeColor:'red',
-            strokeWeight: 6,
             strokeOpacity:0.5,
-            strokeDasharray: [30,10],
-            // strokeStyle还支持 solid
-            strokeStyle: 'dashed',
+            strokeWeight: 6,
             fillColor:'blue',
             fillOpacity:0.5,
-            cursor:'pointer',
-            zIndex:50,
+            // strokeStyle还支持 solid
+            strokeStyle: 'solid',
+            // strokeDasharray: [30,10],
         })
 
-        rectangle.setMap(map);
+
         
-        map.setFitView([ rectangle ]);
+        mouseTool.on('draw', drawer);
 
-        markersCollider(rectangle);
+        function drawer(event) {
+            // event.obj 为绘制出来的覆盖物对象
+            // log.info('覆盖物对象绘制完成')
 
-        markerHandler.rectangle = {
-            type: rectangle,
-            editor: new AMap.RectangleEditor(map, rectangle)
+            // debugger;
+
+            // console.log(event.obj);
+            mouseTool.close();
+            
+            markerHandler.rectangle = event.obj;
+
+            markersCollider(event.obj);
+            
+
+            mouseTool.off('draw', drawer);
         }
+        // markersCollider(rectangle);
+
+        // if(markerHandler.circle) markerHandler.circle.type.setMap();
+        // let center = map.getCenter();
+        // let m = center.offset(1000, 1000);
+       
+        // var bounds = new AMap.Bounds(center, m);
+        // var rectangle = new AMap.Rectangle({
+        //     bounds: bounds,
+        //     strokeColor:'red',
+        //     strokeWeight: 6,
+        //     strokeOpacity:0.5,
+        //     strokeDasharray: [30,10],
+        //     // strokeStyle还支持 solid
+        //     strokeStyle: 'dashed',
+        //     fillColor:'blue',
+        //     fillOpacity:0.5,
+        //     cursor:'pointer',
+        //     zIndex:50,
+        // })
+
+        // rectangle.setMap(map);
+        
+        // map.setFitView([ rectangle ]);
+
+        // markersCollider(rectangle);
+
+        // markerHandler.rectangle = {
+        //     type: rectangle,
+        //     editor: new AMap.RectangleEditor(map, rectangle)
+        // }
     }
 
     function markersCollider(geometry, closeAni) {
@@ -347,6 +429,8 @@ const MapEntry = props => {
         map.plugin(["AMap.ToolBar"], function () {
             map.addControl(new AMap.ToolBar());
         });
+
+        mouseTool = new AMap.MouseTool(map)
     }, [])
 
 
