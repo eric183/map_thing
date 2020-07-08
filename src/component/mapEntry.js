@@ -336,7 +336,7 @@ const MapEntry = props => {
                     // var area = AMap.GeometryUtil.ringArea(lnglats[0]);
 
                     // let visibleValue = true;
-                    // console.log(geojson);
+                    // console.log(geojson.properties.name);
                     let marker = new AMap.Marker({
                         // position: lnglats,
                         // content: '<div style="background-color: hsla(180, 100%, 50%, 0.7); height: 24px; width: 24px; border: 1px solid hsl(180, 100%, 40%); border-radius: 12px; box-shadow: hsl(180, 100%, 50%) 0px 0px 1px;"></div>',
@@ -345,7 +345,7 @@ const MapEntry = props => {
                         // map: map,
                         position: lnglats,
                         visible: tap.visibility == 'visible' ? true : false,
-                        // title: "你好",
+                        title: geojson.properties.name,
                         // label: "南方",
                         // content: "你好",
                         animation: "AMAP_ANIMATION_DROP",
@@ -395,19 +395,23 @@ const MapEntry = props => {
 
     const getItemStyle = (isDragging, draggableStyle) => ({
         position: 'relative',
-        userSelect: "none",
-        padding: grid * 2,
-        margin: `0 0 ${grid}px 0`,
-        background: isDragging ? "lightgreen" : "grey",
+        userSelect: 'none',
+        padding: '15px',
+        background: 'rgba(0, 0, 0, 0.5)',
+        color: '#fff',
+        fontSize: '12px',
+        width: '96%',
+        boxSizing: "border-box",
+        margin: '2px auto',
+        background: isDragging ? "rgba(0, 0, 0, 0.8)" : "rgba(0, 0, 0, 0.5)",
         ...draggableStyle
     });
 
     const getListStyle = isDraggingOver => ({
-        background: isDraggingOver ? "lightblue" : "lightgrey",
-        padding: grid,
-        width: 150,
-        height: 350,
-        overflow: 'auto'
+        background: isDraggingOver ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.2)",
+        width: '150px',
+        height: '350px',
+        overflow: 'auto',
     });
 
     const onDragEnd = (result,v,j) => {
@@ -539,7 +543,17 @@ const MapEntry = props => {
                                     ref={provided.innerRef}
                                     style={getListStyle(snapshot.isDraggingOver)}
                                 >
-                                    <p style={{ textAlign: 'center' }}>图层管理</p>
+                                    <p style={{     
+                                        textAlign: 'left',
+                                        background: '#2A92BF',
+                                        /* height: '100px', */
+                                        padding: '10px',
+                                        margin: '0',
+                                        color: '#fff',
+                                        fontSize: '12px',
+                                        paddingLeft: '25px',
+                                    }}>Layer Manager</p>
+
                                     { items.map((item, index) => (
                                         <Draggable 
                                             key={item.id} 
@@ -582,7 +596,19 @@ const MapEntry = props => {
                                     ))}
                                     {provided.placeholder}
 
-                                    <button style={{ position: 'relative', width: '100%', height: '50px' }}>
+                                    <button style={{ 
+                                        position: 'relative',
+                                        userSelect: 'none',
+                                        padding: '15px',
+                                        background: 'rgba(247, 3, 49, 0.5)',
+                                        color: 'rgb(255, 255, 255)',
+                                        fontSize: '12px',
+                                        width: '96%',
+                                        boxSizing: 'border-box',
+                                        display: 'block',
+                                        margin: 'auto',
+                                        border: 0,
+                                     }}>
                                         <input 
                                             onChange={uploader}
                                             type="file" 
@@ -597,7 +623,7 @@ const MapEntry = props => {
                                                 zIndex: 5
                                             }}
                                         />
-                                        添加图层
+                                        Add Layer
                                     </button>
 
                                 </div>
@@ -615,7 +641,7 @@ const MapEntry = props => {
                                         width: '150px',
                                         height: '350px',
                                         overflow: 'auto',
-                                        background: 'lightgrey',
+                                        background: 'rgba(0, 0, 0, 0.2)',
                                         zIndex: 1,
                                         cursor: 'auto',
                                         visibility: items.length > 0 ? "visible": "hidden",
