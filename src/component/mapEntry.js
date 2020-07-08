@@ -361,7 +361,7 @@ const MapEntry = props => {
                     bottom: 0,
                     background: '#234873',
                     zIndex: hasLoading ? 0 : 200,
-                    display: "flex",
+                    display: hasLoading ? "none" : "flex",
                     alignItems: "center",
                     justifyContent: "center"
                 }}>
