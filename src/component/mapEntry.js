@@ -2,8 +2,9 @@ import React, { useRef, useEffect, useState, Fragment } from 'react';
 // import { mm } from '../asset/data/points1.json';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { saveAs } from 'file-saver';
+import './ani.css';
 
-
+import Logo from "../asset/images/logo.png";
 let map;
 
 let markerHandler = {};
@@ -15,6 +16,7 @@ const MapEntry = props => {
   
 
     const [items, setItems] = useState([]);
+    const [hasLoading, setLoad] = useState(false);
     
     function injectIndexNumber(obj, number) {
 
@@ -337,6 +339,10 @@ const MapEntry = props => {
             center: [113.934298, 22.506958],
             zoom: 15
         });
+
+        map.on('complete', () => {
+            setLoad(true);
+        })
         // debugger;
         map.plugin(["AMap.ToolBar"], function () {
             map.addControl(new AMap.ToolBar());
@@ -346,6 +352,22 @@ const MapEntry = props => {
 
     return (
         <div className="map-entry" ref={myRef} style={{ width: '100%', height: '100%' }}>
+            <div className="loading-content" 
+                style={{ 
+                    position: "fixed", 
+                    left: 0, 
+                    right: 0, 
+                    top: 0, 
+                    bottom: 0,
+                    background: '#234873',
+                    zIndex: hasLoading ? 0 : 200,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                }}>
+                <img src={Logo} className="waitAnimate" style={{ width: '200px', height: '200px' }}/>
+            </div>
+            
             <div className="mapToggle" style={{ position: "fixed", left: '50px', top: '30%', zIndex: 1 }}>
                 {/* haha */}
                 <DragDropContext onDragEnd={onDragEnd}>
