@@ -25,27 +25,53 @@ const MapEntry = props => {
         return obj;
     }
 
-    function drawCircle() {
+
+    function drawBinder(type) {
+        let editor;
         for(let i in markerHandler) {
             if(!!markerHandler[i]) {
                 markerHandler[i].setMap();
             }
         }
 
+      
+        switch(type) {
+            case "circle":
+                mouseTool.circle({
+                    strokeColor: "#FF33FF",
+                    strokeOpacity: 1,
+                    strokeWeight: 6,
+                    strokeOpacity: 0.2,
+                    fillColor: '#1791fc',
+                    fillOpacity: 0.4,
+                    strokeStyle: 'solid',
+                    // 线样式还支持 'dashed'
+                    // strokeDasharray: [30,10],
+                });
 
-        mouseTool.circle({
-            strokeColor: "#FF33FF",
-            strokeOpacity: 1,
-            strokeWeight: 6,
-            strokeOpacity: 0.2,
-            fillColor: '#1791fc',
-            fillOpacity: 0.4,
-            strokeStyle: 'solid',
-            // 线样式还支持 'dashed'
-            // strokeDasharray: [30,10],
-        });
+                editor = AMap.CircleEditor;
+            break;
+            case "rectangle":
+                
+                mouseTool.rectangle({
+                    strokeColor:'red',
+                    strokeOpacity:0.5,
+                    strokeWeight: 6,
+                    fillColor:'blue',
+                    fillOpacity:0.5,
+                    // strokeStyle还支持 solid
+                    strokeStyle: 'solid',
+                    // strokeDasharray: [30,10],
+                });
+                editor = AMap.RectangleEditor;
+
+            break;
+
+            default: 
+                return 0;
 
 
+        }
 
         mouseTool.on('draw', drawer);
 
@@ -58,120 +84,168 @@ const MapEntry = props => {
             // console.log(event.obj);
             mouseTool.close();
             
-            markerHandler.circle = event.obj;
+            markerHandler[event.obj['CLASS_NAME'].toLocaleLowerCase().replace(/.+\./, '')] = event.obj;
 
+            // markerHandler[event.obj['CLASS_NAME'].toLocaleLowerCase().replace(/.+\./, '')] = event.obj;
+            // markerHandler.editor = new editor(map, event.obj);
+            // console.log(event.obj['CLASS_NAME'].toLocaleLowerCase().replace(/.+\./, ''))
+            
             markersCollider(event.obj);
             
 
             mouseTool.off('draw', drawer);
         }
         
-        // markersCollider(circle);
+    }
 
-        // if(markerHandler.circle) {
+    // function drawCircle() {
+    //     for(let i in markerHandler) {
+    //         if(!!markerHandler[i]) {
+    //             markerHandler[i].setMap();
+    //         }
+    //     }
+
+
+    //     mouseTool.circle({
+    //         strokeColor: "#FF33FF",
+    //         strokeOpacity: 1,
+    //         strokeWeight: 6,
+    //         strokeOpacity: 0.2,
+    //         fillColor: '#1791fc',
+    //         fillOpacity: 0.4,
+    //         strokeStyle: 'solid',
+    //         // 线样式还支持 'dashed'
+    //         // strokeDasharray: [30,10],
+    //     });
+
+
+
+    //     mouseTool.on('draw', drawer);
+
+    //     function drawer(event) {
+    //         // event.obj 为绘制出来的覆盖物对象
+    //         // log.info('覆盖物对象绘制完成')
+
+    //         // debugger;
+
+    //         // console.log(event.obj);
+    //         mouseTool.close();
             
-        //     markerHandler.circle.type.setMap();
-        // }
+    //         markerHandler.circle = event.obj;
 
-        // var circle = new AMap.Circle({
-        //     center: map.getCenter(),
-        //     radius: 1000, //半径
-        //     borderWeight: 3,
-        //     strokeColor: "#FF33FF", 
-        //     strokeOpacity: 1,
-        //     strokeWeight: 6,
-        //     strokeOpacity: 0.2,
-        //     fillOpacity: 0.4,
-        //     strokeStyle: 'dashed',
-        //     strokeDasharray: [10, 10], 
-        //     // 线样式还支持 'dashed'
-        //     fillColor: '#1791fc',
-        //     zIndex: 50,
-        // })
+    //         markersCollider(event.obj);
+            
+
+    //         mouseTool.off('draw', drawer);
+    //     }
+        
+    //     // markersCollider(circle);
+
+    //     // if(markerHandler.circle) {
+            
+    //     //     markerHandler.circle.type.setMap();
+    //     // }
+
+    //     // var circle = new AMap.Circle({
+    //     //     center: map.getCenter(),
+    //     //     radius: 1000, //半径
+    //     //     borderWeight: 3,
+    //     //     strokeColor: "#FF33FF", 
+    //     //     strokeOpacity: 1,
+    //     //     strokeWeight: 6,
+    //     //     strokeOpacity: 0.2,
+    //     //     fillOpacity: 0.4,
+    //     //     strokeStyle: 'dashed',
+    //     //     strokeDasharray: [10, 10], 
+    //     //     // 线样式还支持 'dashed'
+    //     //     fillColor: '#1791fc',
+    //     //     zIndex: 50,
+    //     // })
     
-        // circle.setMap(map)
-        // 缩放地图到合适的视野级别
-        // map.setFitView([ circle ]);
+    //     // circle.setMap(map)
+    //     // 缩放地图到合适的视野级别
+    //     // map.setFitView([ circle ]);
 
-        // markersCollider(circle);
-        // markerHandler.circle = {
-        //     type: circle,
-        //     editor: new AMap.CircleEditor(map, circle)
-        // }
-    }
+    //     // markersCollider(circle);
+    //     // markerHandler.circle = {
+    //     //     type: circle,
+    //     //     editor: new AMap.CircleEditor(map, circle)
+    //     // }
+    // }
 
-    function drawRect() {
+    // function drawRect() {
 
 
-        for(let i in markerHandler) {
-            if(!!markerHandler[i]) {
-                markerHandler[i].setMap();
-            }
-        }
+    //     for(let i in markerHandler) {
+    //         if(!!markerHandler[i]) {
+    //             markerHandler[i].setMap();
+    //         }
+    //     }
 
-        mouseTool.rectangle({
-            strokeColor:'red',
-            strokeOpacity:0.5,
-            strokeWeight: 6,
-            fillColor:'blue',
-            fillOpacity:0.5,
-            // strokeStyle还支持 solid
-            strokeStyle: 'solid',
-            // strokeDasharray: [30,10],
-        })
+    //     mouseTool.rectangle({
+    //         strokeColor:'red',
+    //         strokeOpacity:0.5,
+    //         strokeWeight: 6,
+    //         fillColor:'blue',
+    //         fillOpacity:0.5,
+    //         // strokeStyle还支持 solid
+    //         strokeStyle: 'solid',
+    //         // strokeDasharray: [30,10],
+    //     })
 
 
         
-        mouseTool.on('draw', drawer);
+    //     mouseTool.on('draw', drawer);
 
-        function drawer(event) {
-            // event.obj 为绘制出来的覆盖物对象
-            // log.info('覆盖物对象绘制完成')
+    //     function drawer(event) {
+    //         // event.obj 为绘制出来的覆盖物对象
+    //         // log.info('覆盖物对象绘制完成')
 
-            // debugger;
+    //         // debugger;
 
-            // console.log(event.obj);
-            mouseTool.close();
+    //         // console.log(event.obj);
+    //         mouseTool.close();
+    //         markerHandler[event.obj['CLASS_NAME'].toLocaleLowerCase().replace(/.+\./, '')] = event.obj;
+    //         console.log(event.obj['CLASS_NAME'].toLocaleLowerCase().replace(/.+\./, ''))
             
-            markerHandler.rectangle = event.obj;
-
-            markersCollider(event.obj);
+    //         // debugger;
+    //         markersCollider(event.obj);
             
 
-            mouseTool.off('draw', drawer);
-        }
-        // markersCollider(rectangle);
+    //         mouseTool.off('draw', drawer);
+    //     }
+    //     // markersCollider(rectangle);
 
-        // if(markerHandler.circle) markerHandler.circle.type.setMap();
-        // let center = map.getCenter();
-        // let m = center.offset(1000, 1000);
+    //     // if(markerHandler.circle) markerHandler.circle.type.setMap();
+    //     // let center = map.getCenter();
+    //     // let m = center.offset(1000, 1000);
        
-        // var bounds = new AMap.Bounds(center, m);
-        // var rectangle = new AMap.Rectangle({
-        //     bounds: bounds,
-        //     strokeColor:'red',
-        //     strokeWeight: 6,
-        //     strokeOpacity:0.5,
-        //     strokeDasharray: [30,10],
-        //     // strokeStyle还支持 solid
-        //     strokeStyle: 'dashed',
-        //     fillColor:'blue',
-        //     fillOpacity:0.5,
-        //     cursor:'pointer',
-        //     zIndex:50,
-        // })
+    //     // var bounds = new AMap.Bounds(center, m);
+    //     // var rectangle = new AMap.Rectangle({
+    //     //     bounds: bounds,
+    //     //     strokeColor:'red',
+    //     //     strokeWeight: 6,
+    //     //     strokeOpacity:0.5,
+    //     //     strokeDasharray: [30,10],
+    //     //     // strokeStyle还支持 solid
+    //     //     strokeStyle: 'dashed',
+    //     //     fillColor:'blue',
+    //     //     fillOpacity:0.5,
+    //     //     cursor:'pointer',
+    //     //     zIndex:50,
+    //     // })
 
-        // rectangle.setMap(map);
+    //     // rectangle.setMap(map);
         
-        // map.setFitView([ rectangle ]);
+    //     // map.setFitView([ rectangle ]);
 
-        // markersCollider(rectangle);
+    //     // markersCollider(rectangle);
 
-        // markerHandler.rectangle = {
-        //     type: rectangle,
-        //     editor: new AMap.RectangleEditor(map, rectangle)
-        // }
-    }
+    //     // markerHandler.rectangle = {
+    //     //     type: rectangle,
+    //     //     editor: new AMap.RectangleEditor(map, rectangle)
+    //     // }
+    // }
 
     function markersCollider(geometry, closeAni) {
         let handlerEditor;
@@ -184,7 +258,7 @@ const MapEntry = props => {
         findMarkers.forEach(m=> { m.setAnimation("AMAP_ANIMATION_BOUNCE") })
 
 
-        geometry.on('click', leftClick);
+        // geometry.on('click', leftClick);
 
     
 
@@ -200,7 +274,7 @@ const MapEntry = props => {
 
 
             // recall self after editor finished and stop all animation of chosen markers
-            geometry.off('click', leftClick),
+            // geometry.off('click', leftClick),
             geometry.off('rightclick', rightClick),
             markersCollider(geometry, true);
             
@@ -209,11 +283,11 @@ const MapEntry = props => {
         window.addEventListener('keyup', handlerCloserTool, false);
 
 
-        function leftClick(evt) {
-            handlerEditor = markerHandler[evt.target['CLASS_NAME'].toLocaleLowerCase().replace(/.+\./, '')].editor
+        // function leftClick(evt) {
+        //     handlerEditor = markerHandler[evt.target['CLASS_NAME'].toLocaleLowerCase().replace(/.+\./, '')].editor
             
-            handlerEditor.open();
-        }
+        //     handlerEditor.open();
+        // }
 
         function rightClick(evt) {
             var fileName = prompt("请输入导出文件名", "export");
@@ -558,7 +632,7 @@ const MapEntry = props => {
                                             borderRadius: '50%',
                                         }}
                                         className="geomery circle"
-                                        onClick={drawCircle}>
+                                        onClick={ () => drawBinder("circle")}>
 
                                     </div>
                                     <div 
@@ -569,7 +643,7 @@ const MapEntry = props => {
                                             border: '1px solid #fff', 
                                         }}
                                         className="geomery rect"
-                                        onClick={drawRect}>
+                                        onClick={() => drawBinder("rectangle")}>
                                         
                                     </div>
                                 </div>
