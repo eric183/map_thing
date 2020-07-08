@@ -1,9 +1,13 @@
 import React, { useRef, useEffect, useState, Fragment } from 'react';
 // import { mm } from '../asset/data/points1.json';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { saveAs } from 'file-saver';
 
 
 let map;
+
+let markerHandler = {};
+
 const MapEntry = props => {
     
    
@@ -12,7 +16,19 @@ const MapEntry = props => {
 
     const [items, setItems] = useState([]);
     
+    function injectIndexNumber(obj, number) {
+
+        obj.visibility = "visible";
+        obj.id = (number || items.length).toString();
+        return obj;
+    }
+
     function drawCircle() {
+        if(markerHandler.circle) {
+            
+            markerHandler.circle.type.setMap();
+        }
+
         var circle = new AMap.Circle({
             center: map.getCenter(),
             radius: 1000, //半径
@@ -34,21 +50,18 @@ const MapEntry = props => {
         map.setFitView([ circle ]);
 
         markersCollider(circle);
-
+        markerHandler.circle = {
+            type: circle,
+            editor: new AMap.CircleEditor(map, circle)
+        }
     }
 
     function drawRect() {
-        let center = map.getCenter();
-        let m = center.offset(1500, 1500);
-        // console.log(m);
 
-        // debugger;
-        // console.log();
-        // debugger;
-        // var southWest = new AMap.LngLat(center);
-        // var northEast = new AMap.LngLat(center);
-        // console.log(new AMap.LngLat(center).offset(10, 10));
-        // debugger;
+        if(markerHandler.circle) markerHandler.circle.type.setMap();
+        let center = map.getCenter();
+        let m = center.offset(1000, 1000);
+       
         var bounds = new AMap.Bounds(center, m);
         var rectangle = new AMap.Rectangle({
             bounds: bounds,
@@ -63,43 +76,84 @@ const MapEntry = props => {
             cursor:'pointer',
             zIndex:50,
         })
-                
+
         rectangle.setMap(map);
+        
         map.setFitView([ rectangle ]);
 
         markersCollider(rectangle);
+
+        markerHandler.rectangle = {
+            type: rectangle,
+            editor: new AMap.RectangleEditor(map, rectangle)
+        }
     }
 
-    function markersCollider(geometry, bool) {
+    function markersCollider(geometry, closeAni) {
+        let handlerEditor;
         let markers = map.getAllOverlays("marker");
-        // debugger;
+        
+
+        markers.forEach(m=> { m.setAnimation("AMAP_ANIMATION_NONE") })
+
         let findMarkers = markers.filter((obj, index) =>  geometry.contains(obj.getPosition()));
-        // debugger;
-        // markers
-        debugger;
-        geometry.on('click', (evt)=> {
-            var person = prompt("请输入导出文件名", "export");
+        findMarkers.forEach(m=> { m.setAnimation("AMAP_ANIMATION_BOUNCE") })
+
+
+        geometry.on('click', leftClick);
+
+    
+
+        geometry.on('rightclick', rightClick);
+        
+        console.log(`已选${findMarkers.length}个marker`);
+
+
+        // Editor Coliider EventListener
+        const handlerCloserTool = evt => {
+            handlerEditor && handlerEditor.close();
+            window.removeEventListener('keyup', handlerCloserTool, false);
+
+
+            // recall self after editor finished and stop all animation of chosen markers
+            geometry.off('click', leftClick),
+            geometry.off('rightclick', rightClick),
+            markersCollider(geometry, true);
+            
+        };
+        
+        window.addEventListener('keyup', handlerCloserTool, false);
+
+
+        function leftClick(evt) {
+            handlerEditor = markerHandler[evt.target['CLASS_NAME'].toLocaleLowerCase().replace(/.+\./, '')].editor
+            
+            handlerEditor.open();
+        }
+
+        function rightClick(evt) {
+            var fileName = prompt("请输入导出文件名", "export");
             // debugger;
-            if (person != null) {
+            if (fileName != null) {
                 // document.getElementById("demo").innerHTML =
                 // "Hello " + person + "! How are you today?";
                 // AMap.GeoJSON()
-                let z = markers.toGeoJSON()
-                debugger;
+                let obj = {
+                    type: "FeatureCollection",
+                    features: findMarkers.map((d)=> d.getExtData()),
+                };
+                
+                var blob = new Blob([JSON.stringify(obj)], { type: "application/json" });
+                
+                saveAs(blob, `${fileName}.geojson`);
 
+
+                
             } else {
                 return;
             }
-        })
-        alert(findMarkers.length);
-    }
+        }
 
-
-    function injectIndexNumber(obj, number) {
-
-        obj.visibility = "visible";
-        obj.id = (number || items.length).toString();
-        return obj;
     }
 
     function resortMarkerLayer(_items) {
@@ -120,7 +174,7 @@ const MapEntry = props => {
                 //     console.log('as');
                 // },
                 getMarker: (geojson, lnglats) => {
-                    
+                    // debugger;
                     // var area = AMap.GeometryUtil.ringArea(lnglats[0]);
 
                     // let visibleValue = true;
@@ -138,6 +192,7 @@ const MapEntry = props => {
                         // content: "你好",
                         animation: "AMAP_ANIMATION_DROP",
                         clickable: true,
+                        extData: geojson,
                         // fillOpacity: 1 - Math.sqrt(area / 8000000000),// 面积越大透明度越高
                         // strokeColor: 'white',
                         // fillColor: 'red',
@@ -171,29 +226,21 @@ const MapEntry = props => {
         }
     ));
 
-    // a little function to help us with reordering the result
     const reorder = (list, startIndex, endIndex) => {
-        // console.log(list, startIndex, endIndex);
-        // console.log(list);
+      
         let _list = [...list];
         const result = Array.from(_list);
         const [removed] = result.splice(startIndex, 1);
         result.splice(endIndex, 0, removed);
-        // console.log('resort', result);
         return result;
     };
 
     const getItemStyle = (isDragging, draggableStyle) => ({
-        // some basic styles to make the items look a bit nicer
         position: 'relative',
         userSelect: "none",
         padding: grid * 2,
         margin: `0 0 ${grid}px 0`,
-
-        // change background colour if dragging
         background: isDragging ? "lightgreen" : "grey",
-
-        // styles we need to apply on draggables
         ...draggableStyle
     });
 
@@ -206,14 +253,12 @@ const MapEntry = props => {
     });
 
     const onDragEnd = (result,v,j) => {
-        // dropped outside the list
-        // console.log(map);
+
         if (!result.destination) {
             return;
         } else if(result.source.index === result.destination.index) {
             return;
         }
-        // debugger;
         
         let myitems = reorder(
             items,
@@ -221,23 +266,15 @@ const MapEntry = props => {
             result.destination.index
         )
         setItems(myitems);
-        // console.log(items);
-        // resortMarkerLayer(myitems);
-       
+
     }
 
     const uploader = (event) => {
-        // debugger;
-
         let reader = new FileReader();
         reader.readAsText(event.target.files[0]);
         reader.onload = (event) => {
-            // debugger;
             setItems([...items, injectIndexNumber(JSON.parse(event.target.result), items.length + 1)]);
-
-
         }
-
     } 
 
     const hideAndShow = (item, index) => {
@@ -323,7 +360,7 @@ const MapEntry = props => {
                                     style={getListStyle(snapshot.isDraggingOver)}
                                 >
                                     <p style={{ textAlign: 'center' }}>图层管理</p>
-                                    {items.map((item, index) => (
+                                    { items.map((item, index) => (
                                         <Draggable 
                                             key={item.id} 
                                             index={index}
@@ -401,6 +438,9 @@ const MapEntry = props => {
                                         background: 'lightgrey',
                                         zIndex: 1,
                                         cursor: 'auto',
+                                        visibility: items.length > 0 ? "visible": "hidden",
+                                        opacity: items.length > 0 ? "1": "0",
+                                        transition: 'all .3s'
                                     }}
                                     className="geometry-content">
                                     <div 
